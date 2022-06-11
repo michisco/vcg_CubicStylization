@@ -6,11 +6,11 @@
 #include <cube_style_precomputation.h>
 #include <cube_style_single_iteration.h>
 #include <normalize_unitbox.h>
+#include <cubic_stylizing.h>
 
 #include <vcg/complex/algorithms/mesh_to_matrix.h>
-
-#include <wrap/io_trimesh/import_off.h>
-#include <wrap/io_trimesh/export_off.h>
+#include <wrap/io_trimesh/import.h>
+#include <wrap/io_trimesh/export.h>
 
 #include <cstring>
 
@@ -38,93 +38,60 @@ using namespace std;
 #define MESH_PATH "../../../../meshes/"
 #endif
 
-#ifndef OUTPUT_PATH
-#define OUTPUT_PATH "../"
-#endif
-
-// to run the code, type "./cubeStyle_bin [meshName] [lambda]"
+// to run the code, type "./trimesh_field_smoothing [meshName] [lambda] [outputMeshName]"
 int main(int argc, char *argv[])
 {
     // load mesh and lambda
-    Eigen::MatrixXd V, U;
+    MatrixXd V, U;
     MatrixXi F;
-    cube_style_data data;
+    double lambda;
     string meshName;
+    string outputName;
+
+    if (argc == 1)
     {
-        if (argc == 1)
-        {
-            meshName = "spot.obj"; // default mesh
-            data.lambda = 0.2; // default lambda
-        }
-        else if (argc == 2)
-        {
-            meshName = argv[1];
-            data.lambda = 0.2; // default lambda
-        }
-        else
-        {
-            meshName = argv[1];
-            data.lambda = stod(argv[2]);
-        }
-        string file = MESH_PATH + meshName;
-
-        int n = file.length();
-        // declaring character array
-        char char_array[n + 1];
-
-        // copying the contents of the
-        // string to char array
-        strcpy(char_array, file.c_str());
-
-        MyMesh mesh_obj;
-        tri::io::ImporterOFF<MyMesh>::Open(mesh_obj,char_array);
-        tri::MeshToMatrix<MyMesh>::MatrixXm V_temp;
-
-        tri::MeshToMatrix<MyMesh>::GetTriMeshData(mesh_obj, F, V_temp);
-        V = V_temp.cast<double>();
-
-        //igl::readOBJ(file, V, F);
-        normalize_unitbox(V);
-        RowVector3d meanV = V.colwise().mean();
-        V = V.rowwise() - meanV;
-        U = V;
+        meshName = "spot.obj"; // default mesh
+        lambda = 0.2; // default lambda
+        outputName = "cubic_spot.obj"; //default output mesh
+    }
+    else if (argc == 2)
+    {
+        meshName = argv[1];
+        lambda = 0.2; // default lambda
+        outputName = "cubic_spot.obj"; //default output mesh
+    }
+    else if(argc == 3){
+        meshName = argv[1];
+        lambda = stod(argv[2]);
+        outputName = "cubic_spot.obj"; //default output mesh
+    }
+    else
+    {
+        meshName = argv[1];
+        lambda = stod(argv[2]);
+        outputName = argv[3];
     }
 
-    // set a constrained point F(0,0)
-    {
-        data.bc.resize(1,3);
-        data.bc << V.row(F(0,0));
+    string file = MESH_PATH + meshName;
 
-        data.b.resize(1);
-        data.b << F(0,0);
-    }
+    int n = file.length();
+    // declaring character array
+    char char_array[n + 1];
 
-    // precomputation ARAP and initialize ADMM parameters
-    cube_style_precomputation(V,F,data);
+    // copying the contents of the
+    // string to char array
+    strcpy(char_array, file.c_str());
 
-    // cubic stylization
-    int maxIter = 1000;
-    double stopReldV = 1e-3; // stopping criteria for relative displacement
-    for (int iter=0; iter<maxIter; iter++)
-    {
-        cout << "iteration: " << iter << endl;
-        cube_style_single_iteration(V,U,data);
-        if (data.reldV < stopReldV) break;
-    }
+    MyMesh mesh_obj;
+    MyMesh output_mesh;
+    tri::io::Importer<MyMesh>::Open(mesh_obj,char_array);
+
+    tri::Stylize_Cubic(mesh_obj, output_mesh, lambda);
 
     // write output mesh
-    {
-        string outputName = "cubic_";
-        outputName.append("bunny_test.obj");
-        string outputFile = OUTPUT_PATH + outputName;
-        igl::writeOBJ(outputFile,U,F);
-        //tri::io::ExporterOFF<MyMesh>::Save(meshName,"Test.off",tri::io::Mask::IOM_FACECOLOR);
-
-        /*string inputName = "input_";
-        inputName.append(meshName);
-        string inputFile = OUTPUT_PATH + inputName;
-        igl::writeOBJ(inputFile,V,F);*/
-    }
+    string outputFile = MESH_PATH + outputName;
+    const char * outFile = outputFile.c_str();
+    tri::io::Exporter<MyMesh>::Save(output_mesh,outFile);
 
     return 0;
 }

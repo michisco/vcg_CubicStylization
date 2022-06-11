@@ -14,12 +14,14 @@ SOURCES += cube_style_precomputation.cpp \
     main_test.cpp \
     normalize_unitbox.cpp \
     orthogonal_procrustes.cpp \
-    shrinkage.cpp
+    shrinkage.cpp \
+    ../../../../wrap/ply/plylib.cpp
 
 HEADERS += \
     cube_style_data.h \
     cube_style_precomputation.h \
     cube_style_single_iteration.h \
+    cubic_stylizing.h \
     fit_rotations_l1.h \
     normalize_unitbox.h \
     orthogonal_procrustes.h \
