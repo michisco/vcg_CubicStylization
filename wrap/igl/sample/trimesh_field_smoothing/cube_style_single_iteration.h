@@ -18,5 +18,6 @@
 void cube_style_single_iteration(
     const Eigen::MatrixXd & V,
     Eigen::MatrixXd & U,
-    cube_style_data & data);
+    cube_style_data & data,
+    Eigen::VectorXd & energyVects);
 #endif // CUBE_STYLE_SINGLE_ITERATION_H

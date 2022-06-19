@@ -22,6 +22,7 @@ HEADERS += \
     cube_style_precomputation.h \
     cube_style_single_iteration.h \
     cubic_stylizing.h \
+    exporter_cubic.h \
     fit_rotations_l1.h \
     normalize_unitbox.h \
     orthogonal_procrustes.h \

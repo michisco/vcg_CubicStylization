@@ -15,5 +15,6 @@ void fit_rotations_l1(
     const Eigen::MatrixXd & V,
     Eigen::MatrixXd & U,
     Eigen::MatrixXd & RAll,
-    cube_style_data & data);
+    cube_style_data & data,
+    Eigen::VectorXd & energy_vects);
 #endif // FIT_ROTATIONS_L1_H

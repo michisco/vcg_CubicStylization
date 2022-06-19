@@ -4,7 +4,8 @@ void fit_rotations_l1(
     const Eigen::MatrixXd & V,
     Eigen::MatrixXd & U,
     Eigen::MatrixXd & RAll,
-    cube_style_data & data)
+    cube_style_data & data,
+    Eigen::VectorXd & energy_vects)
 {
     using namespace Eigen;
     using namespace std;
@@ -93,5 +94,9 @@ void fit_rotations_l1(
             } // ADMM end
         }
     ,1000);
+
+    energy_vects = data.objValVec;
+    //for(int i=0; i < data.objValVec.size(); i++)
+    //    cout << "Energy " << i << " : " << data.objValVec(i) << endl;
     data.objVal = data.objValVec.sum();
 }
