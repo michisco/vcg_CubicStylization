@@ -96,7 +96,5 @@ void fit_rotations_l1(
     ,1000);
 
     energy_vects = data.objValVec;
-    //for(int i=0; i < data.objValVec.size(); i++)
-    //    cout << "Energy " << i << " : " << data.objValVec(i) << endl;
     data.objVal = data.objValVec.sum();
 }

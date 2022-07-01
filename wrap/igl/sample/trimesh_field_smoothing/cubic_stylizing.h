@@ -6,9 +6,12 @@
 #include <cube_style_single_iteration.h>
 #include <normalize_unitbox.h>
 #include <exporter_cubic.h>
+#include <edge_flip_cubization.h>
 
 #include <vcg/complex/algorithms/mesh_to_matrix.h>
 #include <vcg/complex/allocate.h>
+
+#include <conversionMeshes.h>
 
 namespace vcg{
 namespace tri{
@@ -16,11 +19,6 @@ namespace tri{
 template<class MeshType >
 void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &energyVertexes, std::string outName)
 {
-
-    typedef typename MeshType::VertexPointer  VertexPointer;
-    typedef typename MeshType::FaceIterator   FaceIterator;
-    typedef typename tri::MeshToMatrix<MeshType>::MatrixXm MatrixXm;
-
     // check requirements
     vcg::tri::VertexVectorHasPerVertexTexCoord( m.vert );
     vcg::tri::VertexVectorHasPerVertexFlags( m.vert );
@@ -32,12 +30,10 @@ void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &e
     Eigen::MatrixXd U;
     Eigen::MatrixXi F;
     Eigen::MatrixXd V_uv;
-    MatrixXm V_temp;
-    Eigen:: MatrixXd energyVects;
+    Eigen::VectorXd prev_energyVertexes;
 
     //convert mesh in matrix
-    vcg::tri::MeshToMatrix< MeshType >::GetTriMeshData(m, F, V_temp);
-    V = V_temp.template cast<double>();
+    Mesh2Matrix(m, V, F);
 
     normalize_unitbox(V);
     Eigen::RowVector3d meanV = V.colwise().mean();
@@ -58,28 +54,18 @@ void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &e
     double stopReldV = 1e-3; // stopping criteria for relative displacement
     for (int iter=0; iter<maxIter; iter++)
     {
+        //prev_energyVertexes = energyVertexes;
+
         cube_style_single_iteration(V,U,data,energyVertexes);
+        //apply edge flips
+        Edge_flip_cubization(o, F, U, energyVertexes);
+
         std::cout << "iteration: " << iter << " Total energy: " << std::scientific <<  data.objVal << std::endl;
         if (data.reldV < stopReldV) break;
         if(iter%30 == 0){
 
-            //reconvert V and F matrixes in a mesh
-            o.Clear();
-            Allocator<MeshType>::AddVertices(o,U.rows());
-            Allocator<MeshType>::AddFaces(o,F.rows());
-            VertexPointer ivp[U.rows()];
-
-            int i;
-            for (i=0; i < U.rows(); i++){
-                for (int j = 0; j < 3; j++)
-                    o.vert[i].P()[j] = U(i,j);
-                ivp[i]=&o.vert[i];
-            }
-
-            FaceIterator fi;
-            for (i=0,fi=o.face.begin();fi!=o.face.end();i++,fi++)
-                for (int j = 0; j < 3; j++)
-                    (*fi).V(j) = ivp[F(i, j)];
+            //convert matrixes in mesh
+            Matrix2Mesh(o, U, F);
 
             std::string outfile = outName + "_qualityVertex_" + std::to_string(iter);
             exporter_cubic_colorize(o, energyVertexes, outfile);
@@ -88,23 +74,8 @@ void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &e
 
     std::cout << "Total energy: " << std::scientific <<  data.objVal << std::endl;
 
-    //reconvert V and F matrixes in a mesh
-    o.Clear();
-    Allocator<MeshType>::AddVertices(o,U.rows());
-    Allocator<MeshType>::AddFaces(o,F.rows());
-    VertexPointer ivp[U.rows()];
-
-    int i;
-    for (i=0; i < U.rows(); i++){
-        for (int j = 0; j < 3; j++)
-            o.vert[i].P()[j] = U(i,j);
-        ivp[i]=&o.vert[i];
-    }
-
-    FaceIterator fi;
-    for (i=0,fi=o.face.begin();fi!=o.face.end();i++,fi++)
-        for (int j = 0; j < 3; j++)
-            (*fi).V(j) = ivp[F(i, j)];
+    //convert matrixes in mesh
+    Matrix2Mesh(o, U, F);
 }
 }}
 #endif // CUBIC_STYLIZING_H

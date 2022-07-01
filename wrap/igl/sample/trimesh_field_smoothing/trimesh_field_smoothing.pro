@@ -18,10 +18,12 @@ SOURCES += cube_style_precomputation.cpp \
     ../../../../wrap/ply/plylib.cpp
 
 HEADERS += \
+    conversionMeshes.h \
     cube_style_data.h \
     cube_style_precomputation.h \
     cube_style_single_iteration.h \
     cubic_stylizing.h \
+    edge_flip_cubization.h \
     exporter_cubic.h \
     fit_rotations_l1.h \
     normalize_unitbox.h \
