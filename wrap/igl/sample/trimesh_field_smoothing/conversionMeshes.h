@@ -10,11 +10,12 @@ namespace tri{
     void Mesh2Matrix(MeshType& convertingMesh, Eigen::MatrixXd &output_vertexes, Eigen::MatrixXi &output_faces){
         typedef typename tri::MeshToMatrix<MeshType>::MatrixXm MatrixXm;
         MatrixXm V_temp;
+        Eigen::MatrixXi F_temp;
 
         //convert mesh in matrix
-        vcg::tri::MeshToMatrix< MeshType >::GetTriMeshData(convertingMesh, output_faces, V_temp);
+        vcg::tri::MeshToMatrix< MeshType >::GetTriMeshData(convertingMesh, F_temp, V_temp);
         output_vertexes = V_temp.template cast<double>();
-
+        output_faces = F_temp;
     }
 
     template<class MeshType >

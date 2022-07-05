@@ -4,7 +4,8 @@ void cube_style_single_iteration(
     const Eigen::MatrixXd & V,
     Eigen::MatrixXd & U,
     cube_style_data & data,
-    Eigen::VectorXd & energyVects)
+    Eigen::VectorXd & energyVects,
+    Eigen::MatrixXd & R)
 {
     using namespace Eigen;
     using namespace std;
@@ -14,6 +15,9 @@ void cube_style_single_iteration(
     {
         fit_rotations_l1(V, U, RAll, data, energyVects);
     }
+
+    R.setZero();
+    R = RAll;
 
     // global step
     MatrixXd Upre = U;

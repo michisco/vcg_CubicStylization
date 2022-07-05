@@ -55,15 +55,15 @@ void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &e
     for (int iter=0; iter<maxIter; iter++)
     {
         //prev_energyVertexes = energyVertexes;
+        Eigen::MatrixXd R;
+        cube_style_single_iteration(V,U,data,energyVertexes,R);
 
-        cube_style_single_iteration(V,U,data,energyVertexes);
         //apply edge flips
-        Edge_flip_cubization(o, F, U, energyVertexes);
+        Edge_flip_cubization(o,F,U,data,R);
 
         std::cout << "iteration: " << iter << " Total energy: " << std::scientific <<  data.objVal << std::endl;
         if (data.reldV < stopReldV) break;
         if(iter%30 == 0){
-
             //convert matrixes in mesh
             Matrix2Mesh(o, U, F);
 
