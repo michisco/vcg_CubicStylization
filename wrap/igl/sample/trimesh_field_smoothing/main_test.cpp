@@ -40,7 +40,7 @@ using namespace std;
 #define MESH_PATH "../../../../meshes/"
 #endif
 
-// to run the code, type "./trimesh_field_smoothing [meshName.obj] [lambda] [outputMeshName]"
+// to run the code, type "./trimesh_field_smoothing [meshName.obj] [lambda] [outputMeshName] [0/1]"
 int main(int argc, char *argv[])
 {
     // load mesh and lambda
@@ -49,29 +49,40 @@ int main(int argc, char *argv[])
     double lambda;
     string meshName;
     string outputName;
+    int isFlipping;
 
     if (argc == 1)
     {
         meshName = "spot.obj"; // default mesh
         lambda = 0.2; // default lambda
         outputName = "cubic_spot"; //default output mesh
+        isFlipping = 0;
     }
     else if (argc == 2)
     {
         meshName = argv[1];
         lambda = 0.2; // default lambda
-        outputName = "cubic_spot"; //default output mesh
+        outputName = "cubic_" + meshName; //default output mesh name
+        isFlipping = 0;
     }
     else if(argc == 3){
         meshName = argv[1];
         lambda = stod(argv[2]);
-        outputName = "cubic_spot"; //default output mesh
+        outputName = "cubic_" + meshName; //default output mesh name
+        isFlipping = 0;
+    }
+    else if(argc == 4){
+        meshName = argv[1];
+        lambda = stod(argv[2]);
+        outputName = argv[3];
+        isFlipping = 0;
     }
     else
     {
         meshName = argv[1];
         lambda = stod(argv[2]);
         outputName = argv[3];
+        isFlipping = stoi(argv[4]);
     }
 
     string file = MESH_PATH + meshName;
@@ -91,7 +102,7 @@ int main(int argc, char *argv[])
     tri::io::Importer<MyMesh>::Open(mesh_obj,char_array);
 
     string outputFile = MESH_PATH + outputName;
-    tri::Stylize_Cubic(mesh_obj, output_mesh, lambda, energyVertexes, outputFile);
+    tri::Stylize_Cubic(mesh_obj, output_mesh, lambda, energyVertexes, outputFile, isFlipping);
 
     string outputFileObj = outputFile;
     exporter_cubic(output_mesh, outputFileObj);

@@ -37,7 +37,7 @@ double energy_computing(
             // save objective
             double objVal =
                 0.5*((R*dV-dU)*WVec.asDiagonal()*(R*dV-dU).transpose()).trace()
-                + data.lambda * data.VA(verts[ii]) * (R*n).cwiseAbs().sum();
+               + data.lambda * data.VA(verts[ii]) * (R*n).cwiseAbs().sum();
             energyVec(verts[ii]) = objVal;
         }
     ,1000);

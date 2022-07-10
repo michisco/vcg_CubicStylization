@@ -17,7 +17,7 @@ namespace vcg{
 namespace tri{
 
 template<class MeshType >
-void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &energyVertexes, std::string outName)
+void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &energyVertexes, std::string outName, int isFlip)
 {
     // check requirements
     vcg::tri::VertexVectorHasPerVertexTexCoord( m.vert );
@@ -59,7 +59,8 @@ void Stylize_Cubic( MeshType& m, MeshType&o, double cubeness, Eigen::VectorXd &e
         cube_style_single_iteration(V,U,data,energyVertexes,R);
 
         //apply edge flips
-        Edge_flip_cubization(o,F,U,data,R);
+        if(isFlip)
+            Edge_flip_cubization(o,F,U,data,R);
 
         std::cout << "iteration: " << iter << " Total energy: " << std::scientific <<  data.objVal << std::endl;
         if (data.reldV < stopReldV) break;
