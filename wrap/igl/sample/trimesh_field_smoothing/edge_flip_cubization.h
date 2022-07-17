@@ -13,6 +13,9 @@
 #include <wrap/io_trimesh/export.h>
 #include <energy_computing.h>
 
+#ifndef ANGLE_NORM
+#define ANGLE_NORM (2.f/3.f)*M_PI
+#endif
 namespace vcg{
 namespace tri{
 
@@ -61,7 +64,7 @@ void Edge_flip_cubization(MeshType &out,
                     {
                         vcg::face::FlipEdge((*fi), j);
 
-                        if(vcg::face::CheckFlipEdgeNormal((*fi), j, ((2/3)*M_PI))){
+                        if(vcg::face::CheckFlipEdgeNormal((*fi), j, ANGLE_NORM)){
                             U_temp.setZero(U.rows(), U.cols());
                             F_temp.setZero(F.rows(), F.cols());
                             Mesh2Matrix(out, U_temp, F_temp);
@@ -105,7 +108,7 @@ void Edge_flip_cubization(MeshType &out,
                     (Angle(v2 - v1, v0 - v1) + Angle(v3 - v1, v0 - v1) < M_PI)){
 
                     vcg::face::FlipEdge((*best_face), best_edge);
-                    if(vcg::face::CheckFlipEdgeNormal((*best_face), best_edge, ((2/3)*M_PI)))
+                    if(vcg::face::CheckFlipEdgeNormal((*best_face), best_edge, ANGLE_NORM))
                         std::cout<<"FLIPPED " +  std::to_string(best_energy)<<std::endl;
                     else
                        vcg::face::FlipEdge((*best_face), (best_edge+1)%3);
