@@ -16,7 +16,10 @@
 #include <conversionMeshes.h>
 
 #ifndef ANGLE_NORM
-#define ANGLE_NORM M_PI/6
+#define ANGLE_NORM (2.f/3.f)*M_PI //120°
+#endif
+#ifndef RATIO_THRESHOLD
+#define RATIO_THRESHOLD 0.3f
 #endif
 namespace vcg{
 namespace tri{
@@ -35,8 +38,6 @@ void Edge_flip_cubization(MeshType &out,
     Eigen::MatrixXi F_temp;
 
     Matrix2Mesh(out, U, F);
-
-    std::cout << ANGLE_NORM <<std::endl;
 
     FaceIterator fi;
     tri::UpdateTopology<MeshType>::FaceFace(out);
@@ -67,24 +68,32 @@ void Edge_flip_cubization(MeshType &out,
 
                         if(vcg::face::CheckFlipEdgeNormal((*fi), j, ANGLE_NORM)){
 
+
                             vcg::face::FlipEdge((*fi), j);
 
-                            U_temp.setZero(U.rows(), U.cols());
-                            F_temp.setZero(F.rows(), F.cols());
-                            Mesh2Matrix(out, U_temp, F_temp);
+                            double meanRatio = vcg::QualityMeanRatio((*fi).P(0), (*fi).P(1), (*fi).P(2));
+                            double meanRatio_adj_0 = vcg::QualityMeanRatio(((*fi).FFp(0))->P(0), ((*fi).FFp(0))->P(1), ((*fi).FFp(0))->P(2));
+                            double meanRatio_adj_1 = vcg::QualityMeanRatio(((*fi).FFp(1))->P(0), ((*fi).FFp(1))->P(1), ((*fi).FFp(1))->P(2));
+                            double meanRatio_adj_2 = vcg::QualityMeanRatio(((*fi).FFp(2))->P(0), ((*fi).FFp(2))->P(1), ((*fi).FFp(2))->P(2));
 
-                            //get vertex indexes
-                            int vertexes [4] = { tri::Index(out, (*fi).V0(z)),
-                                                 tri::Index(out, (*fi).V1(z)),
-                                                 tri::Index(out, (*fi).V2(z)),
-                                                 tri::Index(out, ((*fi).FFp(z))->V2((*fi).FFi(z)))};
+                            if(meanRatio >= RATIO_THRESHOLD && meanRatio_adj_0 >= RATIO_THRESHOLD && meanRatio_adj_1 >= RATIO_THRESHOLD && meanRatio_adj_2 >= RATIO_THRESHOLD){
+                                U_temp.setZero(U.rows(), U.cols());
+                                F_temp.setZero(F.rows(), F.cols());
+                                Mesh2Matrix(out, U_temp, F_temp);
 
-                            //compute energy after the flip
-                            double e1 = energy_computing(U_temp, R, data, vertexes);
-                            if(e1 < best_energy){
-                                best_energy = e1;
-                                best_face = fi;
-                                best_edge = j;
+                                //get vertex indexes
+                                int vertexes [4] = { tri::Index(out, (*fi).V0(z)),
+                                                     tri::Index(out, (*fi).V1(z)),
+                                                     tri::Index(out, (*fi).V2(z)),
+                                                     tri::Index(out, ((*fi).FFp(z))->V2((*fi).FFi(z)))};
+
+                                //compute energy after the flip
+                                double e1 = energy_computing(U_temp, R, data, vertexes);
+                                if(e1 < best_energy){
+                                    best_energy = e1;
+                                    best_face = fi;
+                                    best_edge = j;
+                                }
                             }
 
                             //remove flip
@@ -113,9 +122,17 @@ void Edge_flip_cubization(MeshType &out,
 
                     if(vcg::face::CheckFlipEdgeNormal((*best_face), best_edge, ANGLE_NORM)){
                         vcg::face::FlipEdge((*best_face), best_edge);
-                        std::cout<<"FLIPPED " +  std::to_string(best_energy)<<std::endl;
+
+                        double meanRatio = vcg::QualityMeanRatio((*best_face).P(0), (*best_face).P(1), (*best_face).P(2));
+                        double meanRatio_adj_0 = vcg::QualityMeanRatio(((*best_face).FFp(0))->P(0), ((*best_face).FFp(0))->P(1), ((*best_face).FFp(0))->P(2));
+                        double meanRatio_adj_1 = vcg::QualityMeanRatio(((*best_face).FFp(1))->P(0), ((*best_face).FFp(1))->P(1), ((*best_face).FFp(1))->P(2));
+                        double meanRatio_adj_2 = vcg::QualityMeanRatio(((*best_face).FFp(2))->P(0), ((*best_face).FFp(2))->P(1), ((*best_face).FFp(2))->P(2));
+
+                        if(meanRatio >= RATIO_THRESHOLD && meanRatio_adj_0 >= RATIO_THRESHOLD && meanRatio_adj_1 >= RATIO_THRESHOLD && meanRatio_adj_2 >= RATIO_THRESHOLD)
+                            std::cout<<"FLIPPED " +  std::to_string(best_energy)<<std::endl;
+                        else
+                            vcg::face::FlipEdge((*best_face), (best_edge+1)%3);
                     }
-                    //vcg::face::FlipEdge(out.face[best_face], (best_edge+1)%3);//vcg::face::FlipEdge((*best_face), (best_edge+1)%3);
                 }
             }
         }
