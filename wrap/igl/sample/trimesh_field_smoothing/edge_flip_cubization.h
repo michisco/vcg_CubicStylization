@@ -13,8 +13,10 @@
 #include <wrap/io_trimesh/export.h>
 #include <energy_computing.h>
 
+#include <conversionMeshes.h>
+
 #ifndef ANGLE_NORM
-#define ANGLE_NORM (2.f/3.f)*M_PI
+#define ANGLE_NORM M_PI/6
 #endif
 namespace vcg{
 namespace tri{
@@ -31,20 +33,20 @@ void Edge_flip_cubization(MeshType &out,
 
     Eigen::MatrixXd U_temp;
     Eigen::MatrixXi F_temp;
+
     Matrix2Mesh(out, U, F);
+
+    std::cout << ANGLE_NORM <<std::endl;
 
     FaceIterator fi;
     tri::UpdateTopology<MeshType>::FaceFace(out);
-    int i;
 
     //initialize to inf
     double best_energy = std::numeric_limits<double>::infinity();
     FaceIterator best_face;
     int best_edge = -1;
 
-    MeshType mesh_temp;
-
-    for(i=0, fi=out.face.begin();fi!=out.face.end();i++,fi++){
+    for(fi=out.face.begin();fi!=out.face.end(); fi++){
         for(int j = 0; j < 3; j++){
             if(vcg::face::CheckFlipEdge((*fi), j)){
                 if( math::ToDeg( Angle(((*fi).FFp(j))->cN(), (*fi).cN()) ) <= 0.1f ){
@@ -62,9 +64,11 @@ void Edge_flip_cubization(MeshType &out,
                     if( (Angle(v2 - v0, v1 - v0) + Angle(v3 - v0, v1 - v0) < M_PI) &&
                         (Angle(v2 - v1, v0 - v1) + Angle(v3 - v1, v0 - v1) < M_PI))
                     {
-                        vcg::face::FlipEdge((*fi), j);
 
                         if(vcg::face::CheckFlipEdgeNormal((*fi), j, ANGLE_NORM)){
+
+                            vcg::face::FlipEdge((*fi), j);
+
                             U_temp.setZero(U.rows(), U.cols());
                             F_temp.setZero(F.rows(), F.cols());
                             Mesh2Matrix(out, U_temp, F_temp);
@@ -82,10 +86,10 @@ void Edge_flip_cubization(MeshType &out,
                                 best_face = fi;
                                 best_edge = j;
                             }
-                        }
 
-                        //remove flip
-                        vcg::face::FlipEdge((*fi), (j+1)%3);
+                            //remove flip
+                            vcg::face::FlipEdge((*fi), (j+1)%3);
+                        }                       
                     }
                 }
             }
@@ -107,11 +111,11 @@ void Edge_flip_cubization(MeshType &out,
                 if( (Angle(v2 - v0, v1 - v0) + Angle(v3 - v0, v1 - v0) < M_PI) &&
                     (Angle(v2 - v1, v0 - v1) + Angle(v3 - v1, v0 - v1) < M_PI)){
 
-                    vcg::face::FlipEdge((*best_face), best_edge);
-                    if(vcg::face::CheckFlipEdgeNormal((*best_face), best_edge, ANGLE_NORM))
+                    if(vcg::face::CheckFlipEdgeNormal((*best_face), best_edge, ANGLE_NORM)){
+                        vcg::face::FlipEdge((*best_face), best_edge);
                         std::cout<<"FLIPPED " +  std::to_string(best_energy)<<std::endl;
-                    else
-                       vcg::face::FlipEdge((*best_face), (best_edge+1)%3);
+                    }
+                    //vcg::face::FlipEdge(out.face[best_face], (best_edge+1)%3);//vcg::face::FlipEdge((*best_face), (best_edge+1)%3);
                 }
             }
         }
