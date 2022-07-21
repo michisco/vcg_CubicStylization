@@ -8,24 +8,22 @@ namespace vcg{
 namespace tri{
     template<class MeshType >
     void Mesh2Matrix(MeshType& convertingMesh, Eigen::MatrixXd &output_vertexes, Eigen::MatrixXi &output_faces){
-        typedef typename tri::MeshToMatrix<MeshType>::MatrixXm MatrixXm;
-        MatrixXm V_temp;
-        Eigen::MatrixXi F_temp;
 
         //convert mesh in matrix
-        vcg::tri::MeshToMatrix< MeshType >::GetTriMeshData(convertingMesh, F_temp, V_temp);
-        output_vertexes = V_temp.template cast<double>();
-        output_faces = F_temp;
+        vcg::tri::MeshToMatrix< MeshType >::GetTriMeshData( convertingMesh, output_vertexes, output_faces);
     }
 
     template<class MeshType >
     void Matrix2Mesh(MeshType& convertedMesh, Eigen::MatrixXd vertexes, Eigen::MatrixXi faces){
-        typedef typename MeshType::VertexPointer  VertexPointer;
-        typedef typename MeshType::FaceIterator   FaceIterator;
+        //typedef typename MeshType::VertexPointer  VertexPointer;
+        //typedef typename MeshType::FaceIterator   FaceIterator;
 
         //reconvert V and F matrixes in a mesh
         convertedMesh.Clear();
-        Allocator<MeshType>::AddVertices(convertedMesh,vertexes.rows());
+        vcg::tri::Allocator<MeshType>::AddVertices(convertedMesh,vertexes);
+        vcg::tri::Allocator<MeshType>::AddFaces(convertedMesh,faces);
+
+        /*Allocator<MeshType>::AddVertices(convertedMesh,vertexes.rows());
         Allocator<MeshType>::AddFaces(convertedMesh,faces.rows());
         VertexPointer ivp[vertexes.rows()];
 
@@ -39,7 +37,7 @@ namespace tri{
         FaceIterator fi;
         for (i=0,fi=convertedMesh.face.begin();fi!=convertedMesh.face.end();i++,fi++)
             for (int j = 0; j < 3; j++)
-                (*fi).V(j) = ivp[faces(i, j)];
+                (*fi).V(j) = ivp[faces(i, j)];*/
     }
 }}
 

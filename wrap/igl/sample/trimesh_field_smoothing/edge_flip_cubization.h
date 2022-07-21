@@ -28,8 +28,7 @@ template<class MeshType >
 void Edge_flip_cubization(MeshType &out,
         Eigen::MatrixXi &F,
         Eigen::MatrixXd &U,
-        cube_style_data &data,
-        Eigen::MatrixXd &R)
+        cube_style_data &data)
 {
     typedef typename MeshType::FaceIterator FaceIterator;
     typedef typename MeshType::CoordType CoordType;
@@ -88,7 +87,8 @@ void Edge_flip_cubization(MeshType &out,
                                                      tri::Index(out, ((*fi).FFp(z))->V2((*fi).FFi(z)))};
 
                                 //compute energy after the flip
-                                double e1 = energy_computing(U_temp, R, data, vertexes);
+                                double e1 = energy_computing(U_temp, data, vertexes);
+
                                 if(e1 < best_energy){
                                     best_energy = e1;
                                     best_face = fi;

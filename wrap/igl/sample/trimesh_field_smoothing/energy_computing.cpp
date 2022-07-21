@@ -2,7 +2,6 @@
 
 double energy_computing(
     Eigen::MatrixXd U,
-    Eigen::MatrixXd RAll,
     cube_style_data &data,
     int verts[]){
 
@@ -14,11 +13,14 @@ double energy_computing(
 
     igl::parallel_for(
         4,
-        [&data, &RAll, &U, &energyVec, &verts](const int ii)
+        [&data, &U, &energyVec, &verts](const int ii)
         {
             // warm start parameters
             VectorXd n = data.N.row(verts[ii]).transpose();
-            Matrix3d R = RAll.block(0,3*verts[ii],3,3);
+            VectorXd z = data.zAll.col(verts[ii]);
+            VectorXd u = data.uAll.col(verts[ii]);
+            double rho = data.rhoAll(verts[ii]);
+            Matrix3d R; //Matrix3d R = RAll.block(0,3*verts[ii],3,3);
 
             // get energy parameters
             // Note: dVn = [dV n], dUn = [dU z-u]
@@ -33,6 +35,11 @@ double energy_computing(
 
             MatrixXd dV = data.dVList[verts[ii]];
             VectorXd WVec = data.WVecList[verts[ii]];
+            Matrix3d Spre = dV * WVec.asDiagonal() * dU.transpose();
+
+            // R step
+            Matrix3d S = Spre + (rho * n * (z-u).transpose());
+            orthogonal_procrustes(S, R);
 
             // save objective
             double objVal =

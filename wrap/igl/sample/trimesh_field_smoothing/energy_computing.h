@@ -13,7 +13,6 @@
 
 double energy_computing(
     Eigen::MatrixXd U,
-    Eigen::MatrixXd RAll,
     cube_style_data &data,
     int verts[]);
 #endif // ENERGY_COMPUTING_H
